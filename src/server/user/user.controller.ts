@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Res,
 } from '@nestjs/common';
 import { CreateUserDTO, EditUserDTO } from './user.dto';
 import { User } from './user.interface';
@@ -21,56 +22,55 @@ interface UserResponse<T = unknown> {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // GET /user/users
   @Get('users')
   async findAll(): Promise<UserResponse<User[]>> {
-    return {
-      code: 200,
-      data: await this.userService.findAll(),
-      message: 'Success.',
-    };
+    const users = await this.userService.findAll();
+    return { code: 200, data: users, message: 'Success.' };
   }
 
-  // GET /user/:_id
-  @Get(':_id')
-  async findOne(@Param('_id') _id: string): Promise<UserResponse<User>> {
-    return {
-      code: 200,
-      data: await this.userService.findOne(_id),
-      message: 'Success.',
-    };
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserResponse<User>> {
+    const user = await this.userService.findOne(id);
+    return { code: 200, data: user, message: 'Success.' };
   }
 
-  // POST /user
   @Post()
-  async addOne(@Body() body: CreateUserDTO): Promise<UserResponse> {
-    await this.userService.addOne(body);
-    return {
-      code: 200,
-      message: 'Success.',
-    };
+  async addOne(@Body() body: CreateUserDTO, @Res() response): Promise<void> {
+    try {
+      await this.userService.addOne(body);
+      response.status(201).send({ code: 201, message: 'Success.' });
+    } catch (error) {
+      response
+        .status(500)
+        .send({ code: 500, message: 'Internal Server Error.' });
+    }
   }
 
-  // PUT /user/:_id
-  @Put(':_id')
+  @Put(':id')
   async editOne(
-    @Param('_id') _id: string,
+    @Param('id') id: string,
     @Body() body: EditUserDTO,
-  ): Promise<UserResponse> {
-    await this.userService.editOne(_id, body);
-    return {
-      code: 200,
-      message: 'Success.',
-    };
+    @Res() response,
+  ): Promise<void> {
+    try {
+      await this.userService.editOne(id, body);
+      response.status(200).send({ code: 200, message: 'Success.' });
+    } catch (error) {
+      response
+        .status(500)
+        .send({ code: 500, message: 'Internal Server Error.' });
+    }
   }
 
-  // DELETE /user/:_id
-  @Delete(':_id')
-  async deleteOne(@Param('_id') _id: string): Promise<UserResponse> {
-    await this.userService.deleteOne(_id);
-    return {
-      code: 200,
-      message: 'Success.',
-    };
+  @Delete(':id')
+  async deleteOne(@Param('id') id: string, @Res() response): Promise<void> {
+    try {
+      await this.userService.deleteOne(id);
+      response.status(204).send();
+    } catch (error) {
+      response
+        .status(500)
+        .send({ code: 500, message: 'Internal Server Error.' });
+    }
   }
 }
