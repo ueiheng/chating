@@ -1,13 +1,20 @@
+
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
-// 具有单一路由的基本控制器。
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService:AppService,
+  ) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('')
+  sendMessage() {
+    // 发送消息到 WebSocket 服务器
+    console.log('111111');
+    return 'Message sent!';
+  }
+  getHello() {
+    return 'Hello world!'
   }
 }

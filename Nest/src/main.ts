@@ -1,15 +1,16 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { NestFactory } from '@nestjs/core'
+import { WsAdapter } from '@nestjs/platform-ws'
+import { AppModule } from './app.module'
 
-declare const module: any;
-// 使用核心函数 NestFactory 创建 Nest 应用实例的应用入口文件。
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  await app.listen(3001);
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(() => app.close());
-  }
+  const app = await NestFactory.create(AppModule)
+  app.enableCors({
+    origin: true, 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // 允许的 HTTP 方法
+    credentials: true, // 是否允许发送凭证信息（例如 Cookie）
+  }) // 启用 CORS
+  app.useWebSocketAdapter(new WsAdapter(app));
+  await app.listen(3001, '127.0.0.1')
+  console.log(`Application is running on: ${await app.getUrl()}`)
 }
-bootstrap();
+bootstrap()
