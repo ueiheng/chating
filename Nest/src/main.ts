@@ -1,16 +1,35 @@
-import { NestFactory } from '@nestjs/core'
-import { WsAdapter } from '@nestjs/platform-ws'
-import { AppModule } from './app.module'
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import * as cookieParser from 'cookie-parser';
+
+import { AppModule } from './app.module';
+
+import { AuthIoAdapter } from './chat/adapters/auth.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-  app.enableCors({
-    origin: true, 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // 允许的 HTTP 方法
-    credentials: true, // 是否允许发送凭证信息（例如 Cookie）
-  }) // 启用 CORS
-  app.useWebSocketAdapter(new WsAdapter(app));
-  await app.listen(3001, '127.0.0.1')
-  console.log(`Application is running on: ${await app.getUrl()}`)
+  const app = await NestFactory.create(AppModule);
+
+  app.use(cookieParser());
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+
+  app.useWebSocketAdapter(new AuthIoAdapter(app));
+
+  const options = new DocumentBuilder()
+    .setTitle('Realtime Chat')
+    .setDescription('Chat created using Nest.js + Websockets')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api', app, document);
+
+  await app.listen(3000);
 }
-bootstrap()
+bootstrap();

@@ -1,13 +1,30 @@
-// app.module.ts
-import { Module } from '@nestjs/common'
-import { MongooseModule } from '@nestjs/mongoose'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { SocketModule } from './socket/socket.module'
-//链接mgdb
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common';
+
+import { ChatModule } from './chat/chat.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { RoomModule } from './room/room.module';
+
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://localhost/chating'), SocketModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
+    ChatModule,
+    UserModule,
+    AuthModule,
+    RoomModule,
+  ],
+  providers: [],
 })
 export class AppModule {}
